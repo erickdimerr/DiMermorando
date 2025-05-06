@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const documentRoutes = require('./routes/documentRoutes');  // Importando o arquivo de rotas
 
@@ -8,11 +9,11 @@ const port = 5000;
 // Middleware CORS: permitir requisições entre origens diferentes
 app.use(cors());
 
-// Middleware para parsing de JSON (não é necessário o body-parser)
-app.use(express.json());  // Express já tem suporte para JSON nativamente
+// Middleware para parsing de JSON
+app.use(bodyParser.json());
 
 // Usar as rotas para atualizar a contagem
-app.use('/api', documentRoutes);
+app.use('/api', documentRoutes);  // Definindo o prefixo para todas as rotas em 'api'
 
 // Iniciar o servidor
 app.listen(port, () => {
