@@ -6,14 +6,13 @@ const router = express.Router();
 
 // Rota POST para atualizar a contagem no DynamoDB
 router.post('/update', async (req, res) => {
-  const { type, count, numero } = req.body;
+  const { type, count } = req.body;
 
-  console.log('Dados recebidos no back-end:', { type, count, numero });
+  console.log('Dados recebidos no back-end:', { type, count });
 
   // Validação do tipo de documento (tipos válidos)
   const validTypes = ['Memorando', 'MemorandoCircular', 'Oficio', 'OficioCircular', 'Atestado', 'Declaracao'];
 
-  // Verificar se o tipo de documento é válido
   if (!validTypes.includes(type)) {
     console.log('Tipo de documento inválido:', type);
     return res.status(400).send('Tipo de documento inválido');
@@ -36,31 +35,32 @@ router.post('/update', async (req, res) => {
       currentCount = parseInt(data.Item.count.N, 10); // Obter o valor atual de count do DynamoDB
     }
 
-    const newCount = currentCount + count; // Incrementar a contagem existente com a contagem recebida
+    // Calcular o novo valor de count
+    const newCount = count; // Usar diretamente o valor de `count` enviado, sem somar com o `currentCount`
 
     // Definir os parâmetros para a atualização no DynamoDB
     const paramsUpdate = {
-      TableName: 'documents',  // Nome da tabela
+      TableName: 'documents',
       Key: {
         type: { S: type },
       },
-      UpdateExpression: 'set #count = :count', // Usar #count para evitar palavra reservada
+      UpdateExpression: 'set #count = :count', // Usar #count para evitar palavras reservadas
       ExpressionAttributeNames: {
         '#count': 'count',
       },
       ExpressionAttributeValues: {
-        ':count': { N: String(newCount) }, // O novo valor de count, após o incremento
+        ':count': { N: String(newCount) }, // O novo valor de count
       },
     };
 
-    const command = new UpdateItemCommand(paramsUpdate);
-    await dynamoDB.send(command);
+    // Atualizar o item no DynamoDB
+    const updateCommand = new UpdateItemCommand(paramsUpdate);
+    await dynamoDB.send(updateCommand);
 
-    // Responder com sucesso
     console.log('Contagem atualizada com sucesso!');
     return res.status(200).send('Contagem atualizada com sucesso');
   } catch (error) {
-    console.error('Erro ao atualizar contagem:', error);  // Log de erro
+    console.error('Erro ao atualizar contagem:', error);
     return res.status(500).send('Erro ao atualizar contagem');
   }
 });

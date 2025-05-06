@@ -1,0 +1,8 @@
+Quando houver duplicação ao clciar no botão, verificar as linhas:
+ERRADO:
+const newCount = currentCount + count;  // Soma do valor atual com o valor recebido
+CERTO:
+const newCount = count; // Usar diretamente o valor de `count` enviado
+
+
+
