@@ -1,43 +1,45 @@
-const { dynamoDB, UpdateItemCommand } = require('../config/awsConfig');
+const { dynamoDB } = require('../config/awsConfig');
+const bcrypt = require('bcryptjs');  // Para criptografar a senha dos usuários
+const { v4: uuidv4 } = require('uuid');  // Para gerar um UUID único, caso queira usar isso como userId
 
-// Função para atualizar a contagem no DynamoDB
-const updateCount = async (req, res) => {
-  const { type, count } = req.body;
+// Função para registrar usuário
+const registerUser = async (req, res) => {
+  const { name, email, password, role } = req.body;
 
-  // Log para verificar se o tipo de documento e a contagem estão sendo recebidos corretamente
-  console.log('Requisição recebida:', { type, count });
-
-  // Verifica se o tipo de documento é válido
-  const validTypes = ['Memorando', 'MemorandoCircular', 'Oficio', 'OficioCircular', 'Atestado', 'Declaracao'];
-  if (!validTypes.includes(type)) {
-    console.log('Tipo de documento inválido:', type);
-    return res.status(400).send('Tipo de documento inválido');
+  // Verificar se todos os dados foram fornecidos
+  if (!name || !email || !password || !role) {
+    return res.status(400).send('Todos os campos são obrigatórios');
   }
 
+  // Gerar um userId único (pode ser o UUID ou pode ser o próprio email)
+  const userId = uuidv4(); // Gerando um UUID único. Caso prefira, use o próprio email aqui.
+
+  // Criptografar a senha
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Parâmetros para adicionar o usuário ao DynamoDB
   const params = {
-    TableName: type,  // O nome da tabela será o tipo do documento (Memorando, Ofício, etc.)
-    Key: {
-      type: { S: type },  // A chave primária será o tipo do documento
-    },
-    UpdateExpression: 'set count = :count',  // Atualiza o campo `count`
-    ExpressionAttributeValues: {
-      ':count': { N: String(count) },  // A contagem deve ser um número, então a convertemos para String
-    },
+    TableName: 'Users',  // Nome da tabela de usuários
+    Item: {
+      userId,  // Usando o UUID como chave de partição
+      email,
+      name,
+      password: hashedPassword,
+      role
+    }
   };
 
   try {
-    // Criar o comando de atualização
-    const command = new UpdateItemCommand(params);
+    // Criar o comando para inserir o usuário
+    await dynamoDB.put(params).promise();
 
-    // Enviar o comando para o DynamoDB
-    await dynamoDB.send(command);
-
-    console.log('Contagem atualizada com sucesso no DynamoDB!');
-    res.status(200).send('Contagem atualizada com sucesso');
+    console.log('Usuário registrado com sucesso no DynamoDB!');
+    res.status(200).send('Cadastro realizado com sucesso!');
   } catch (error) {
-    console.error('Erro ao atualizar contagem:', error);
-    res.status(500).send('Erro ao atualizar contagem');
+    console.error('Erro ao registrar usuário:', error);
+    res.status(500).send('Erro ao cadastrar usuário');
   }
 };
 
-module.exports = { updateCount };
+// Exportando as funções do controlador
+module.exports = { registerUser };

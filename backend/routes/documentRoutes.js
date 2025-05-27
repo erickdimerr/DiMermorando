@@ -1,8 +1,11 @@
 const express = require('express');
 const { UpdateItemCommand, GetItemCommand } = require('@aws-sdk/client-dynamodb');
 const { dynamoDB } = require('../config/awsConfig');
+const documentController = require('../controllers/documentController');  // Importando o controlador
 
 const router = express.Router();
+
+router.post('/register', documentController.registerUser);
 
 // Rota POST para atualizar a contagem no DynamoDB
 router.post('/update', async (req, res) => {
