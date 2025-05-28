@@ -24,14 +24,14 @@ const Register = () => {
     }
 
     try {
-      const response = await axios.post('https://exs6xvz04j.execute-api.sa-east-1.amazonaws.com/cadastro', formData);
+      const response = await axios.post('https://exs6xvz04j.execute-api.sa-east-1.amazonaws.com/dev/cadastro', formData);
       alert('Cadastro realizado com sucesso!');
     } catch (error) {
       alert('Erro ao cadastrar. Tente novamente.');
       console.error(error);
     }
   };
-
+ 
   return (
     <div>
       <h2>Cadastro</h2>
